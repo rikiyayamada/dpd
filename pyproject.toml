@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools"]
+
+[project]
+name = "dpd"
+description = "One-Step Diffusion Policy Distillation"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "torch",
+    "diffusers",
+    "numpy",
+    "tqdm",
+]
+
+[tool.setuptools.packages.find]
+include = ["dpd*"]

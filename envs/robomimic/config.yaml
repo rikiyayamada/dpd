@@ -1,0 +1,64 @@
+defaults:
+ - _self_
+ - override hydra/launcher: joblib
+
+seed: 0
+dataset_path: 'envs/robomimic/datasets/square/ph/low_dim_v15.hdf5'
+num_demos: 200
+obs_keys:
+ - 'robot0_eef_pos'
+ - 'robot0_eef_quat'
+ - 'robot0_gripper_qpos'
+ - 'object'
+abs_action: True
+
+trainer:
+  _target_: dpd.diffusion_policy.Trainer
+  embed_dim: 256
+  mlp_hidden_dim: 1024
+  cond_dim: 128
+  cond_hidden_dims: []
+  num_blocks: 4
+  history_len: 2
+  history_encoder_hidden_dims: [512]
+  dropout: 0.1
+  noise_scheduler:
+    _target_: diffusers.DDPMScheduler
+    num_train_timesteps: 100
+    beta_schedule: squaredcos_cap_v2
+  inference_steps: 100
+  optimizer_factory:
+    _target_: torch.optim.AdamW
+    _partial_: True
+    lr: 1e-4
+    betas: [0.9, 0.95]
+    eps: 1e-8
+    weight_decay: 1e-3
+  ema_model_factory:
+    _target_: dpd.utils.EMAModel
+    _partial_: True
+    decay: 0.99
+    power: 0.75
+  val_ratio: 0.02
+  batch_size: 256
+  lr_scheduler: constant
+  lr_warmup_steps: 1000
+  epochs: 10000
+  yield_every: ${rollout.every}
+  device: cuda
+
+rollout:
+  every: 250
+  horizon: 400
+  num_episodes: 10
+  save_video: True
+  video_speed: 1
+  num_workers: 5
+
+diffusion_policy_path: null
+
+hydra:
+  run:
+    dir: envs/robomimic/outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: envs/robomimic/outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
